@@ -212,8 +212,6 @@ join_clinic` | `{ clinicId: string }` | Join a clinic room |
 
 {
 
-_id: string
-
 id: string
 
 token: string,

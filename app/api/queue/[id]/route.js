@@ -13,7 +13,7 @@ export async function DELETE(request, { params }) {
 
   try {
     const patient = await patients.findOne({
-      _id: id,
+    id: id,
       userId: auth.user.id,
       status: 'waiting', // only allow deleting waiting patients
     });
@@ -25,7 +25,7 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    await patients.remove({ _id: id });
+    await patients.remove({ id: id });
 
     await queueLogs.insert({
       action: 'deleted',
@@ -68,7 +68,7 @@ export async function PUT(request, { params }) {
 
     // Find the patient
     const patient = await patients.findOne({
-      _id: id,
+      id: id,
       userId: auth.user.id,
     });
 
@@ -85,7 +85,7 @@ export async function PUT(request, { params }) {
     // In a more sophisticated system, you'd enforce business rules here
 
     await patients.update(
-      { _id: id },
+      { id: id },
       { status },
       {}
     );
@@ -101,7 +101,7 @@ export async function PUT(request, { params }) {
     logger.info(`Patient status updated: ${patient.token} -> ${status}`);
 
     // Return updated patient
-    const updatedPatient = await patients.findOne({ _id: id });
+    const updatedPatient = await patients.findOne({ id: id });
     return NextResponse.json(updatedPatient);
   } catch (error) {
     logger.error('Update patient error:', error);

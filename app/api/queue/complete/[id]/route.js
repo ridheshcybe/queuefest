@@ -15,7 +15,7 @@ export async function POST(request, { params }) {
     // Find the patient - ONLY allow completion if they are currently 'serving'
     // This prevents accidental completion of patients who are waiting or already completed
     const patient = await patients.findOne({
-      _id: id,
+      id: id,
       userId: auth.user.id,
       status: 'serving',
     });
@@ -31,7 +31,7 @@ export async function POST(request, { params }) {
     // Patients are NOT automatically completed when added or when served
     // Completion only happens when an admin explicitly clicks the "complete" button
     await patients.update(
-      { _id: id },
+      { id: id },
       { status: 'completed', completedAt: new Date() },
       {}
     );

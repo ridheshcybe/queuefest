@@ -42,7 +42,7 @@ export async function POST(request) {
 
     // Update patient to 'serving'
     await patients.update(
-      { _id: nextPatient._id },
+      { id: nextPatient._id },
       { status: 'serving' },
       {}
     );
