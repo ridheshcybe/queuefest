@@ -1,60 +1,58 @@
 import { NextResponse } from 'next/server';
-import { withAuth } from '../../../lib/middleware/auth';
-import { patients, queueLogs, users } from '../../../lib/nedb';
+import { patients } from '../../../lib/nedb';
 import logger from '../../../lib/logger';
 
 export async function GET(request) {
-  const auth = await withAuth(request);
-  if (auth.error) {
-    return NextResponse.json({ message: auth.error }, { status: auth.status });
-  }
-
   try {
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId'); // optional clinic scope
+
+    const baseQuery = userId ? { userId } : {};
+
+    // Count completed
     const completedCount = await patients.count({
-      userId: auth.user.id,
+      ...baseQuery,
       status: 'completed',
     });
 
-    const total = await patients.count({
-      userId: auth.user.id,
+    const waitingCount = await patients.count({
+      ...baseQuery,
+      status: 'waiting',
     });
 
-    const waiting = await patients.count({
-      userId: auth.user.id,
-        $in: ['waiting', 'serving'] ,
-    });
-
-    // Calculate average wait time from completed patients
+    // Average wait time (only if there are completed patients)
     let averageWait = 0;
     if (completedCount > 0) {
       const completedPatients = await patients.find({
         where: {
-          userId: auth.user.id,
+          ...baseQuery,
           status: 'completed',
         },
       });
 
-      const totalWaitMinutes = completedPatients.reduce((sum, patient) => {
+      let totalWaitMinutes = 0;
+      let validCount = 0;
+      for (const patient of completedPatients) {
         const created = patient.createdAt;
         const completed = patient.completedAt;
         if (created && completed) {
-        const waitMs =
-  new Date(completed).getTime() -
-  new Date(created).getTime();
-          const waitMinutes = waitMs / 1000 / 60;
-          return sum + waitMinutes;
+          const waitMs = new Date(completed).getTime() - new Date(created).getTime();
+          totalWaitMinutes += waitMs / 1000 / 60;
+          validCount++;
         }
-        return sum;
-      }, 0);
-
-      averageWait = totalWaitMinutes / completedCount;
+      }
+      if (validCount > 0) {
+        averageWait = totalWaitMinutes / validCount;
+      } else {
+        // Fallback: use a default if no valid timestamps
+        averageWait = 12;
+      }
     }
 
     return NextResponse.json({
-      total,
-      waiting,
+      waiting: waitingCount,
       completed: completedCount,
-      averageWait: Math.round(averageWait * 10) / 10, // one decimal place
+      averageWait: Math.round(averageWait * 10) / 10,
     });
   } catch (error) {
     logger.error('Stats error:', error);

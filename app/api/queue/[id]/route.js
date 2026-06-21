@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '../../../../lib/middleware/auth';
-import { patients, queueLogs, users } from '../../../../lib/nedb';
+import { patients, queueLogs } from '../../../../lib/nedb';
 import logger from '../../../../lib/logger';
 
 export async function DELETE(request, { params }) {
@@ -13,8 +13,9 @@ export async function DELETE(request, { params }) {
 
   try {
     const patient = await patients.findOne({
-    id: id,
-      userId: auth.user.id,  $in: ['waiting', 'serving']  // only allow deleting waiting patients
+      id: id,
+      userId: auth.user.id,
+      status: 'waiting',   // Only waiting patients can be deleted
     });
 
     if (!patient) {
@@ -57,7 +58,6 @@ export async function PUT(request, { params }) {
     const body = await request.json();
     const { status } = body;
 
-    // Validate status transition
     if (!status || !['waiting', 'serving', 'completed'].includes(status)) {
       return NextResponse.json(
         { message: 'Invalid status. Must be waiting, serving, or completed' },
@@ -65,7 +65,6 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Find the patient
     const patient = await patients.findOne({
       id: id,
       userId: auth.user.id,
@@ -78,18 +77,25 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Prevent invalid status transitions
-    // Only allow: waiting -> serving, serving -> completed, waiting -> completed (emergency skip?)
-    // For now, allow any transition but log it
-    // In a more sophisticated system, you'd enforce business rules here
+    // Business rules: only allow valid transitions
+    const validTransitions = {
+      waiting: ['serving'],
+      serving: ['completed'],
+      completed: [], // cannot change from completed
+    };
+    if (!validTransitions[patient.status]?.includes(status)) {
+      return NextResponse.json(
+        { message: `Cannot transition from ${patient.status} to ${status}` },
+        { status: 400 }
+      );
+    }
 
     await patients.update(
       { id: id },
-      { status },
+      { status, ...(status === 'completed' ? { completedAt: new Date() } : {}) },
       {}
     );
 
-    // Log the status change
     await queueLogs.insert({
       action: `status_changed_to_${status}`,
       patientId: patient.id,
@@ -99,7 +105,6 @@ export async function PUT(request, { params }) {
 
     logger.info(`Patient status updated: ${patient.token} -> ${status}`);
 
-    // Return updated patient
     const updatedPatient = await patients.findOne({ id: id });
     return NextResponse.json(updatedPatient);
   } catch (error) {

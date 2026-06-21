@@ -1,15 +1,21 @@
 import { NextResponse } from 'next/server';
-import { patients, queueLogs, users } from '../../../../lib/nedb';
+import { patients } from '../../../../lib/nedb';
+import logger from '../../../../lib/logger';
 
 export async function GET(request) {
-  // No auth required for display? Actually we can allow public access for display.
-  // But we need to know which clinic? For simplicity, we'll return the first serving patient globally.
-  // In production, you'd scope by clinic/user.
-  // Let's make it public for display.
   try {
-    const serving = await patients.findOne({ status: 'serving' });
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId');
+
+    const query = { status: 'serving' };
+    if (userId) {
+      query.userId = userId;
+    }
+
+    const serving = await patients.findOne(query);
     return NextResponse.json(serving);
   } catch (error) {
+    logger.error('Serving error:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

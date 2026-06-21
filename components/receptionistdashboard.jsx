@@ -114,11 +114,8 @@ export default function ReceptionistDashboard() {
       toast(err.message || 'Failed', 'error');
     }
   };
+// Also, fix callNext to update state correctly (already fine)
 
-  const skipServing = () => {
-    setServing(null);
-    toast('Skipped current patient', 'warning');
-  };
 
   if (loading) {
     return (

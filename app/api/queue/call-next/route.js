@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '../../../../lib/middleware/auth';
-import { patients, queueLogs, users } from '../../../../lib/nedb';
+import { patients, queueLogs } from '../../../../lib/nedb';
 import logger from '../../../../lib/logger';
 
 export async function POST(request) {
@@ -10,10 +10,12 @@ export async function POST(request) {
   }
 
   try {
-    // Find the next waiting patient (highest priority, then oldest)
+    // Only fetch waiting patients
     const waitingPatients = await patients.find({
-      userId: auth.user.id,
-  $in: ['waiting', 'serving'] ,
+      where: {
+        userId: auth.user.id,
+        status: 'waiting',
+      },
     });
 
     const priorityWeight = {
@@ -26,9 +28,9 @@ export async function POST(request) {
       const weightA = priorityWeight[a.priority] || 0;
       const weightB = priorityWeight[b.priority] || 0;
       if (weightB !== weightA) {
-        return weightB - weightA; // Higher weight first
+        return weightB - weightA;
       }
-      return new Date(a.createdAt) - new Date(b.createdAt); // Oldest first
+      return new Date(a.createdAt) - new Date(b.createdAt);
     });
 
     const nextPatient = waitingPatients[0];
@@ -47,7 +49,6 @@ export async function POST(request) {
       {}
     );
 
-    // Log
     await queueLogs.insert({
       action: 'called',
       patientId: nextPatient.id,
@@ -57,9 +58,8 @@ export async function POST(request) {
 
     logger.info(`Called next patient: ${nextPatient.token}`);
 
-    // Also ensure any other serving patient is set back to waiting? Not needed if we complete properly.
-const updated = await patients.findOne({ id: nextPatient.id });
-return NextResponse.json(updated);
+    const updated = await patients.findOne({ id: nextPatient.id });
+    return NextResponse.json(updated);
   } catch (error) {
     logger.error('Call next error:', error);
     return NextResponse.json(
