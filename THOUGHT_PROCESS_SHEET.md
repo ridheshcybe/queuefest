@@ -68,8 +68,6 @@ The application uses NeDB:
 
 - It has three collections: patients, queueLogs and users
 
-- It provides a custom wrapper with a Prisma- syntax
-
 - It maps `_id` to `id` for API consistency
 
 - It does not require connection pooling since it is an embedded database
