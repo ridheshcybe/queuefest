@@ -260,8 +260,6 @@ npm run dev
 
 2. Watch display screen
 
-3. Use lookup feature
-
 4. Proceed to consultation room
 
 ## Security Considerations

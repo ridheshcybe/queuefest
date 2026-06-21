@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { patients, queueLogs, users } from '../../../lib/nedb';
+import { patients, queueLogs } from '../../../lib/nedb';
 import { addPatientSchema } from '../../../lib/validation';
 import logger from '../../../lib/logger';
 
@@ -17,7 +17,6 @@ export async function GET(request) {
   try {
     const patientsList = await patients.find({
       where: {
-        userId: auth.user.id,
         status: { $in: ['waiting', 'serving'] },
       },
     });
@@ -67,7 +66,6 @@ export async function POST(request) {
       // Explicitly set status to 'waiting' when adding a patient
       // Patients are NOT automatically completed upon addition
       status: 'waiting',
-      userId: auth.user.id,
       time: new Date().toLocaleTimeString(),
       createdAt: new Date(),
     });
@@ -78,7 +76,6 @@ export async function POST(request) {
     await queueLogs.insert({
       action: 'added',
       patientId: patient.id,
-      userId: auth.user.id,
       details: JSON.stringify({ name, priority }),
     });
 

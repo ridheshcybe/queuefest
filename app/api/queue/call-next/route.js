@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { withAuth } from '../../../../lib/middleware/auth';
 import { patients, queueLogs } from '../../../../lib/nedb';
 import logger from '../../../../lib/logger';
 
@@ -8,7 +7,6 @@ export async function POST(request) {
     // Only fetch waiting patients
     const waitingPatients = await patients.find({
       where: {
-        userId: auth.user.id,
         status: 'waiting',
       },
     });
@@ -47,7 +45,6 @@ export async function POST(request) {
     await queueLogs.insert({
       action: 'called',
       patientId: nextPatient.id,
-      userId: auth.user.id,
       details: `Called ${nextPatient.token}`,
     });
 

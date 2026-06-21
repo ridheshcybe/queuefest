@@ -172,26 +172,6 @@ export default function PatientDisplayScreen() {
           </div>
 
           <div className="bg-[#00478d] text-white rounded-xl p-6 shadow-lg flex flex-col gap-4">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined">search</span>
-              <h3 className="text-[20px] font-semibold leading-[28px]">Lookup Your Status</h3>
-            </div>
-            <div className="relative">
-              <input
-                className="w-full h-14 bg-[#005eb8] text-white border-none rounded-lg px-4 focus:ring-2 focus:ring-[#7df4ff] placeholder:text-[#c8daff]/70 text-[20px] font-bold uppercase"
-                placeholder="Enter Token"
-                value={lookup}
-                onChange={(e) => setLookup(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
-                type="text"
-              />
-              <button
-                className="absolute right-2 top-2 h-10 px-4 bg-[#006970] text-white rounded-md font-bold hover:bg-[#7af1fc] hover:text-[#006e75] transition-all"
-                onClick={handleLookup}
-              >
-                Check
-              </button>
-            </div>
             {lookupResult && (
               <div className="p-4 bg-white/10 rounded-lg border border-white/20 flex flex-col gap-1 animate-in fade-in slide-in-from-top-4 duration-300">
                 {lookupResult.patient?.status === 'serving' ? (

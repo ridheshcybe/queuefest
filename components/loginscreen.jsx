@@ -1,14 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login } = useAuth();
   const toast = useToast();
   const [email, setEmail] = useState('');
   const [pwd, setPwd] = useState('');

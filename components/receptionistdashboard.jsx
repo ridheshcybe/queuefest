@@ -1,13 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { apiFetch } from '../lib/api';
 import Link from 'next/link';
 
 export default function ReceptionistDashboard() {
-  const { logout } = useAuth();
   const toast = useToast();
   const [queue, setQueue] = useState([]);
   const [serving, setServing] = useState(null);
@@ -31,7 +29,6 @@ export default function ReceptionistDashboard() {
       setAvgTime(statsData.averageWait || 12); // fallback to 12 if not available
     } catch (err) {
       if (err.status === 401) {
-        logout();
         window.location.href = '/';
       } else {
         toast('Failed to load data', 'error');
@@ -177,13 +174,6 @@ const skipServing = async () => {
               play_arrow
             </span>
             Call Next Patient
-          </button>
-          <button
-            className="flex items-center gap-4 p-4 text-[#ba1a1a] hover:bg-[#ffdad6]/30 rounded-lg text-sm w-full"
-            onClick={logout}
-          >
-            <span className="material-symbols-outlined">logout</span>
-            Logout
           </button>
         </div>
       </aside>

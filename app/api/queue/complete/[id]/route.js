@@ -1,14 +1,8 @@
 import { NextResponse } from 'next/server';
-import { withAuth } from '../../../../../lib/middleware/auth';
-import { patients, queueLogs, users } from '../../../../../lib/nedb';
+import { patients, queueLogs, resetDB } from '../../../../../lib/nedb';
 import logger from '../../../../../lib/logger';
 
 export async function POST(request, { params }) {
-  const auth = await withAuth(request);
-  if (auth.error) {
-    return NextResponse.json({ message: auth.error }, { status: auth.status });
-  }
-
   const { id } = params;
 
   try {
@@ -16,7 +10,6 @@ export async function POST(request, { params }) {
     // This prevents accidental completion of patients who are waiting or already completed
     const patient = await patients.findOne({
       id: id,
-      userId: auth.user.id,
       status: 'serving',
     });
 
@@ -36,18 +29,32 @@ export async function POST(request, { params }) {
       {}
     );
 
+    // Get the updated patient data (with 'completed' status and completedAt timestamp)
+    const updatedPatient = await patients.findOne({ id });
+
     // Log the completion action for audit trail
     await queueLogs.insert({
       action: 'completed',
       patientId: patient.id,
-      userId: auth.user.id,
       details: `Completed ${patient.token}`,
     });
 
     logger.info(`Patient completed: ${patient.token}`);
 
-const updatedPatient = await patients.findOne({ id });
-return NextResponse.json(updatedPatient);
+    // Check if there are any remaining waiting or serving patients
+    const remainingPatients = await patients.find({
+      where: {
+        status: { $in: ['waiting', 'serving'] },
+      },
+    });
+
+    // If no more patients, reset the entire DB
+    if (remainingPatients.length === 0) {
+      resetDB();
+      logger.info('All patients completed - DB reset to initial state');
+    }
+
+    return NextResponse.json(updatedPatient);
   } catch (error) {
     logger.error('Complete patient error:', error);
     return NextResponse.json(

@@ -1,5 +1,4 @@
 import { ToastProvider } from '../contexts/ToastContext';
-import { AuthProvider } from '../contexts/AuthContext';
 import './global.css';
 
 export const metadata = {
@@ -22,7 +21,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <ToastProvider>
-          <AuthProvider>{children}</AuthProvider>
+         {children}
         </ToastProvider>
       </body>
     </html>

@@ -9,7 +9,6 @@ export async function DELETE(request, { params }) {
   try {
     const patient = await patients.findOne({
       id: id,
-      userId: auth.user.id,
       status: 'waiting',   // Only waiting patients can be deleted
     });
 
@@ -25,7 +24,6 @@ export async function DELETE(request, { params }) {
     await queueLogs.insert({
       action: 'deleted',
       patientId: patient.id,
-      userId: auth.user.id,
       details: `Token ${patient.token} deleted`,
     });
 
@@ -42,11 +40,6 @@ export async function DELETE(request, { params }) {
 }
 
 export async function PUT(request, { params }) {
-  const auth = await withAuth(request);
-  if (auth.error) {
-    return NextResponse.json({ message: auth.error }, { status: auth.status });
-  }
-
   const { id } = params;
 
   try {
@@ -62,7 +55,6 @@ export async function PUT(request, { params }) {
 
     const patient = await patients.findOne({
       id: id,
-      userId: auth.user.id,
     });
 
     if (!patient) {
@@ -94,7 +86,6 @@ export async function PUT(request, { params }) {
     await queueLogs.insert({
       action: `status_changed_to_${status}`,
       patientId: patient.id,
-      userId: auth.user.id,
       details: `Changed status from ${patient.status} to ${status} for token ${patient.token}`,
     });
 
