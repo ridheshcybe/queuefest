@@ -3,5 +3,9 @@
 import LoginScreen from '../components/loginscreen';
 
 export default function HomePage() {
-  return <LoginScreen />;
+  const router = useRouter();
+  useEffect(()=>{
+    router.replace('/dashboard');
+  }, [router]);
+  return null;
 }

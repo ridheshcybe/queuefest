@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { withAuth } from '../../../lib/middleware/auth';
 import { patients, queueLogs, users } from '../../../lib/nedb';
 import { addPatientSchema } from '../../../lib/validation';
 import logger from '../../../lib/logger';
@@ -15,11 +14,6 @@ function generateToken() {
 }
 
 export async function GET(request) {
-  const auth = await withAuth(request);
-  if (auth.error) {
-    return NextResponse.json({ message: auth.error }, { status: auth.status });
-  }
-
   try {
     const patientsList = await patients.find({
       where: {
@@ -54,11 +48,6 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const auth = await withAuth(request);
-  if (auth.error) {
-    return NextResponse.json({ message: auth.error }, { status: auth.status });
-  }
-
   try {
     const body = await request.json();
     const { name, priority } = addPatientSchema.parse(body);

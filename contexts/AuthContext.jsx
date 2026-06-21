@@ -1,60 +1,25 @@
+// contexts/AuthContext.jsx
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { apiFetch } from '../lib/api';
+import { createContext, useContext, useState, useMemo } from 'react';
 
 const AuthContext = createContext(undefined);
 
+const DEMO_USER = {
+  id: 1,
+  email: 'demo@clinic.com',
+  clinicName: 'Demo Clinic',
+};
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(DEMO_USER);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const stored = localStorage.getItem('user');
-    if (token && stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {}
-    }
-    setLoading(false);
-  }, []);
+  const login = async () => DEMO_USER;
+  const signup = async () => DEMO_USER;
+  const logout = () => { /* no‑op */ };
 
-  const login = useCallback(async (email, password) => {
-    const data = await apiFetch('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    setUser(data.user);
-    return data;
-  }, []);
-
-  const signup = useCallback(async (clinicName, email, password) => {
-    const data = await apiFetch('/api/auth/signup', {
-      method: 'POST',
-      body: JSON.stringify({ clinicName, email, password }),
-    });
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    setUser(data.user);
-    return data;
-  }, []);
-
-  const logout = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-  }, []);
-
-  const value = useMemo(() => ({
-    user,
-    loading,
-    login,
-    signup,
-    logout
-  }), [user, loading, login, signup, logout]);
+  const value = useMemo(() => ({ user, loading, login, signup, logout }), [user]);
 
   return (
     <AuthContext.Provider value={value}>

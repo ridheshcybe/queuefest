@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server';
-import { withAuth } from '../../../../lib/middleware/auth';
 import { patients, queueLogs } from '../../../../lib/nedb';
 import logger from '../../../../lib/logger';
 
 export async function DELETE(request, { params }) {
-  const auth = await withAuth(request);
-  if (auth.error) {
-    return NextResponse.json({ message: auth.error }, { status: auth.status });
-  }
 
   const { id } = params;
 

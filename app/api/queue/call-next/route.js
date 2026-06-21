@@ -4,11 +4,6 @@ import { patients, queueLogs } from '../../../../lib/nedb';
 import logger from '../../../../lib/logger';
 
 export async function POST(request) {
-  const auth = await withAuth(request);
-  if (auth.error) {
-    return NextResponse.json({ message: auth.error }, { status: auth.status });
-  }
-
   try {
     // Only fetch waiting patients
     const waitingPatients = await patients.find({
