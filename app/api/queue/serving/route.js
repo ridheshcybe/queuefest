@@ -8,9 +8,7 @@ export async function GET(request) {
     const userId = url.searchParams.get('userId');
 
     const query = { status: 'serving' };
-    if (userId) {
-      query.userId = userId;
-    }
+    if (userId) query.userId = userId;
 
     const serving = await patients.findOne(query);
     return NextResponse.json(serving);

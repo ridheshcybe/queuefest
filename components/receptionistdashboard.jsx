@@ -104,27 +104,32 @@ export default function ReceptionistDashboard() {
     }
   };
 
-  const servePatient = async (patient) => {
-    try {
-      const data = await apiFetch('/api/queue/call-next', { method: 'POST' });
-      setServing(data);
-      setQueue((prev) => prev.filter((p) => p.id !== data.id));
-      toast(`Serving ${data.token}`, 'success');
-    } catch (err) {
-      toast(err.message || 'Failed', 'error');
-    }
-  };
-// Also, fix callNext to update state correctly (already fine)
+// Inside the component
+
+const servePatient = async (patient) => {
+  try {
+    const data = await apiFetch(`/api/queue/${patient.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status: 'serving' }),
+    });
+    setServing(data);
+    setQueue((prev) => prev.filter((p) => p.id !== data.id));
+    toast(`Serving ${data.token}`, 'success');
+  } catch (err) {
+    toast(err.message || 'Failed to serve patient', 'error');
+  }
+};
+
 const skipServing = async () => {
   if (!serving) return;
   try {
-    // Move serving patient back to waiting
     const data = await apiFetch(`/api/queue/${serving.id}`, {
       method: 'PUT',
       body: JSON.stringify({ status: 'waiting' }),
     });
     setServing(null);
-    setQueue((prev) => [...prev, data]); // re-add to waiting queue
+    // Re-add to queue (maintain priority order – we'll just push and resort on next fetch)
+    setQueue((prev) => [...prev, data]);
     toast('Skipped current patient', 'warning');
   } catch (err) {
     toast(err.message || 'Failed to skip', 'error');

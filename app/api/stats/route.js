@@ -5,11 +5,10 @@ import logger from '../../../lib/logger';
 export async function GET(request) {
   try {
     const url = new URL(request.url);
-    const userId = url.searchParams.get('userId'); // optional clinic scope
+    const userId = url.searchParams.get('userId');
 
     const baseQuery = userId ? { userId } : {};
 
-    // Count completed
     const completedCount = await patients.count({
       ...baseQuery,
       status: 'completed',
@@ -20,7 +19,6 @@ export async function GET(request) {
       status: 'waiting',
     });
 
-    // Average wait time (only if there are completed patients)
     let averageWait = 0;
     if (completedCount > 0) {
       const completedPatients = await patients.find({
@@ -44,8 +42,7 @@ export async function GET(request) {
       if (validCount > 0) {
         averageWait = totalWaitMinutes / validCount;
       } else {
-        // Fallback: use a default if no valid timestamps
-        averageWait = 12;
+        averageWait = 12; // fallback
       }
     }
 

@@ -10,14 +10,8 @@ export default function PatientDisplayScreen() {
   const [lookup, setLookup] = useState('');
   const [lookupResult, setLookupResult] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [avgTime, setAvgTime] = useState(12); // default
+  const [avgTime, setAvgTime] = useState(12);
   const toast = useToast();
-
-  // We don't have userId here; we could get it from localStorage or context.
-  // For simplicity, we'll not pass userId and rely on the public stats endpoint (modified above).
-  // But we need to ensure stats endpoint returns global stats.
-  // Alternatively, we can get userId from a URL param or storage.
-  // We'll skip userId for now.
 
   const fetchData = useCallback(async () => {
     try {
@@ -26,9 +20,9 @@ export default function PatientDisplayScreen() {
         apiFetch('/api/queue/serving'),
         apiFetch('/api/stats'), // now public
       ]);
-      // Filter out serving from queue list
-      const waitingPatients = queueData.filter(p => p.status === 'waiting');
-      setQueue(waitingPatients);
+      // Only waiting patients in queue
+      const waiting = queueData.filter(p => p.status === 'waiting');
+      setQueue(waiting);
       setServing(servingData);
       setAvgTime(statsData.averageWait || 12);
     } catch (err) {
@@ -43,18 +37,6 @@ export default function PatientDisplayScreen() {
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
   }, [fetchData]);
-
-  // ... rest of component (handleLookup, render) remains the same
-  const handleLookup = async () => {
-    if (!lookup.trim()) return;
-    try {
-      const data = await apiFetch(`/api/queue/lookup?token=${lookup.toUpperCase()}`);
-      setLookupResult(data);
-    } catch (err) {
-      toast('Token not found', 'error');
-      setLookupResult(null);
-    }
-  };
 
   if (loading) {
     return (
