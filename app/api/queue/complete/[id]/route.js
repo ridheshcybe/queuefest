@@ -32,7 +32,7 @@ export async function POST(request, { params }) {
     // Completion only happens when an admin explicitly clicks the "complete" button
     await patients.update(
       { _id: id },
-      { status: 'completed' },
+      { status: 'completed', completedAt: new Date() },
       {}
     );
 

@@ -10,7 +10,7 @@ export async function GET(request) {
   }
 
   try {
-    const completed = await patients.count({
+    const completedCount = await patients.count({
       userId: auth.user.id,
       status: 'completed',
     });
@@ -24,10 +24,35 @@ export async function GET(request) {
       status: 'waiting',
     });
 
+    // Calculate average wait time from completed patients
+    let averageWait = 0;
+    if (completedCount > 0) {
+      const completedPatients = await patients.find({
+        where: {
+          userId: auth.user.id,
+          status: 'completed',
+        },
+      });
+
+      const totalWaitMinutes = completedPatients.reduce((sum, patient) => {
+        const created = patient.createdAt;
+        const completed = patient.completedAt;
+        if (created && completed) {
+          const waitMs = completed - created;
+          const waitMinutes = waitMs / 1000 / 60;
+          return sum + waitMinutes;
+        }
+        return sum;
+      }, 0);
+
+      averageWait = totalWaitMinutes / completedCount;
+    }
+
     return NextResponse.json({
       total,
       waiting,
-      completed,
+      completed: completedCount,
+      averageWait: Math.round(averageWait * 10) / 10, // one decimal place
     });
   } catch (error) {
     logger.error('Stats error:', error);

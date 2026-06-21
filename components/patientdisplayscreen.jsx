@@ -10,16 +10,19 @@ export default function PatientDisplayScreen() {
   const [lookup, setLookup] = useState('');
   const [lookupResult, setLookupResult] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [avgTime, setAvgTime] = useState(0); // will be set from stats
   const toast = useToast();
 
   const fetchData = useCallback(async () => {
     try {
-      const [queueData, servingData] = await Promise.all([
+      const [queueData, servingData, statsData] = await Promise.all([
         apiFetch('/api/queue'),
         apiFetch('/api/queue/serving'),
+        apiFetch('/api/stats'),
       ]);
       setQueue(queueData);
       setServing(servingData);
+      setAvgTime(statsData.averageWait || 12); // fallback to 12 if not available
     } catch (err) {
       toast('Failed to load queue data', 'error');
     } finally {
@@ -87,7 +90,7 @@ export default function PatientDisplayScreen() {
                 </div>
                 <div>
                   <p className="text-[#424752] font-medium">Estimated Wait</p>
-                  <p className="text-3xl font-bold text-[#00478d]">{queue.length * 12} mins</p>
+                  <p className="text-3xl font-bold text-[#00478d]">{queue.length * avgTime} mins</p>
                 </div>
               </div>
             </div>
@@ -169,7 +172,7 @@ export default function PatientDisplayScreen() {
                     <span className="text-[13px] font-bold text-[#424752] uppercase">Est. Wait</span>
                     <div className="flex items-center gap-1 text-[#00478d] font-bold">
                       <span className="material-symbols-outlined text-[16px]">avg_time</span>
-                      {(idx + 1) * 12}m
+                      {(idx + 1) * avgTime}m
                     </div>
                   </div>
                 </div>

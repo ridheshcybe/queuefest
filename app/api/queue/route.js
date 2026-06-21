@@ -80,6 +80,7 @@ export async function POST(request) {
       status: 'waiting',
       userId: auth.user.id,
       time: new Date().toLocaleTimeString(),
+      createdAt: new Date(),
     });
 
     logger.info(`Patient added: ${patient.token} (${patient.name})`);

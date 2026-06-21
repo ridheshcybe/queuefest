@@ -16,7 +16,7 @@ export default function ReceptionistDashboard() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newName, setNewName] = useState('');
   const [newPriority, setNewPriority] = useState('Normal');
-  const [avgTime, setAvgTime] = useState(12);
+  const [avgTime, setAvgTime] = useState(0); // will be set from stats
 
   const fetchData = async () => {
     try {
@@ -28,6 +28,7 @@ export default function ReceptionistDashboard() {
       setQueue(queueData.filter((p) => p.status === 'waiting'));
       setServing(servingData);
       setCompletedToday(statsData.completed || 0);
+      setAvgTime(statsData.averageWait || 12); // fallback to 12 if not available
     } catch (err) {
       if (err.status === 401) {
         logout();
