@@ -3,6 +3,8 @@ import { patients, queueLogs, users } from '../../../../lib/nedb';
 import { tokenLookupSchema } from '../../../../lib/validation';
 import logger from '../../../../lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   const url = new URL(request.url);
   const token = url.searchParams.get('token');

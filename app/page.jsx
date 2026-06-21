@@ -1,6 +1,6 @@
 'use client';
 import {useRouter} from 'next/navigation';
-import {useEffect} from 'next/navigation';
+import {useEffect} from 'react';
 import LoginScreen from '../components/loginscreen';
 
 export default function HomePage() {

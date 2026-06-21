@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { patients } from '../../../lib/nedb';
 import logger from '../../../lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   try {
     const url = new URL(request.url);
