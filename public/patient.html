@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Waiting Room</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { background: #eef2f7; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 1rem; }
+    .container { background: white; border-radius: 24px; padding: 2.5rem; max-width: 500px; width: 100%; box-shadow: 0 8px 24px rgba(0,0,0,0.12); text-align: center; }
+    .token-big { font-size: 5rem; font-weight: 700; color: #1a3d7c; margin: 0.5rem 0; }
+    .info { font-size: 1.2rem; margin: 1.5rem 0; }
+    .label { color: #5a6b7c; }
+    .wait { font-size: 2rem; font-weight: 600; color: #2d7aff; }
+    .sub { color: #6b7a8a; }
+    .status { padding: 0.5rem; background: #f0f4f8; border-radius: 8px; margin-top: 1.5rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🩺 Waiting Room</h1>
+    <p class="sub">Your token &amp; live status</p>
+
+    <div class="status">
+      <div class="label">Currently Seeing</div>
+      <div id="currentDisplay" class="token-big">—</div>
+    </div>
+
+    <div class="info">
+      <div class="label">Patients ahead of you</div>
+      <div id="aheadCount" class="wait">0</div>
+    </div>
+
+    <div class="info">
+      <div class="label">Estimated wait time</div>
+      <div id="waitTime" class="wait">0 min</div>
+    </div>
+
+    <div style="margin-top: 2rem; font-size: 0.9rem; color: #8a9aa8;">
+      Data updates live — no refresh needed
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    // We'll keep a local copy of the queue to compute "ahead" relative to our own token.
+    // For this MVP, we simulate a single patient by asking them to enter their token number.
+    // In a real app, we'd use a session or query param. Here we prompt once.
+    let myToken = null;
+    while (myToken === null) {
+      const input = prompt('Enter your token number (shown on your slip):');
+      if (input === null) break; // cancelled
+      const num = parseInt(input);
+      if (!isNaN(num) && num > 0) {
+        myToken = num;
+      } else {
+        alert('Please enter a valid positive number.');
+      }
+    }
+
+    const currentDisplay = document.getElementById('currentDisplay');
+    const aheadCount = document.getElementById('aheadCount');
+    const waitTime = document.getElementById('waitTime');
+
+    function updateUI(state) {
+      // Current token
+      if (state.currentToken) {
+        currentDisplay.textContent = `#${state.currentToken.token} ${state.currentToken.name}`;
+      } else {
+        currentDisplay.textContent = '—';
+      }
+
+      // Compute patients ahead of myToken
+      let ahead = 0;
+      if (state.currentToken && state.currentToken.token === myToken) {
+        // Already being seen – ahead = 0
+        ahead = 0;
+      } else {
+        // Count patients in queue with token < myToken
+        ahead = state.queue.filter(p => p.token < myToken).length;
+        // If current token exists and is before my token, add 1
+        if (state.currentToken && state.currentToken.token < myToken) {
+          ahead += 1;
+        }
+      }
+      aheadCount.textContent = ahead;
+
+      // Estimated wait = ahead * avgTime (minutes)
+      const waitMinutes = ahead * state.avgTime;
+      waitTime.textContent = waitMinutes.toFixed(0) + ' min';
+    }
+
+    socket.on('update', (state) => {
+      // If the user hasn't set a token, show placeholder
+      if (myToken === null) {
+        currentDisplay.textContent = '❌';
+        aheadCount.textContent = '—';
+        waitTime.textContent = '—';
+        return;
+      }
+      updateUI(state);
+    });
+
+    // Request initial state will be sent automatically on connection
+  </script>
+</body>
+</html>

@@ -1,33 +1,13 @@
 {
-  "name": "queue-cure-26",
-  "version": "0.1.0",
-  "private": true,
+  "name": "queue-cure-mvp",
+  "version": "1.0.0",
+  "description": "Queue Cure '26 MVP - Real‑time clinic queue management",
+  "main": "server.js",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "node server.js"
   },
   "dependencies": {
-    "@seald-io/nedb": "^4.1.2",
-    "@supabase/supabase-js": "^2.108.2",
-    "@tailwindcss/forms": "^0.5.11",
-    "bcryptjs": "^3.0.3",
-    "jsonwebtoken": "^9.0.3",
-    "next": "14.0.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "winston": "^3.19.0",
-    "zod": "^4.4.3"
-  },
-  "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.10",
-    "autoprefixer": "^10.4.16",
-    "dotenv": "^17.4.2",
-    "eslint": "^8.56.0",
-    "eslint-config-next": "14.0.4",
-    "postcss": "^8.4.32",
-    "tailwindcss": "^3.3.6"
+    "express": "^4.18.2",
+    "socket.io": "^4.5.4"
   }
 }

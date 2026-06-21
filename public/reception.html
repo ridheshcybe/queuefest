@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Receptionist - Queue Cure</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { background: #f5f7fa; display: flex; justify-content: center; padding: 2rem; }
+    .container { max-width: 600px; width: 100%; background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h1 { margin-top: 0; }
+    .section { margin: 1.5rem 0; padding: 1rem; background: #f0f4f8; border-radius: 8px; }
+    .section h3 { margin-top: 0; }
+    label { display: block; margin: 0.5rem 0 0.25rem; }
+    input, button { padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid #ccc; width: 100%; margin: 0.25rem 0; }
+    button { background: #2d7aff; color: white; border: none; font-weight: bold; cursor: pointer; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    .row { display: flex; gap: 0.5rem; }
+    .row input { flex: 1; }
+    .row button { flex: 0 0 auto; width: auto; }
+    #queueList { list-style: none; padding: 0; }
+    #queueList li { background: white; padding: 0.5rem 1rem; margin: 0.25rem 0; border-radius: 4px; border-left: 4px solid #2d7aff; }
+    #currentDisplay { font-size: 1.2rem; font-weight: bold; color: #1a3d7c; }
+    .error { color: #d32f2f; background: #fde0e0; padding: 0.5rem; border-radius: 4px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏥 Receptionist Dashboard</h1>
+    <div id="errorBox" class="error"></div>
+
+    <!-- Add Patient (same) -->
+    <div class="section">
+      <h3>➕ Add Patient</h3>
+      <div class="row">
+        <input type="text" id="patientName" placeholder="Full name" />
+        <button id="addBtn">Add</button>
+      </div>
+    </div>
+
+    <!-- Queue (same) -->
+    <div class="section">
+      <h3>⏳ Queue</h3>
+      <div style="display: flex; justify-content: space-between;">
+        <span>Waiting: <strong id="queueCount">0</strong></span>
+        <button id="callNextBtn">📞 Call Next</button>
+      </div>
+      <ul id="queueList"></ul>
+    </div>
+
+    <!-- Currently Being Seen – now with Complete button -->
+    <div class="section">
+      <h3>👤 Currently Being Seen</h3>
+      <div id="currentDisplay">None</div>
+      <button id="completeBtn" style="margin-top: 0.5rem; background: #28a745;" disabled>✅ Complete Consultation</button>
+    </div>
+
+    <!-- Auto‑detected average display -->
+    <div class="section">
+      <h3>📊 Real‑time Stats</h3>
+      <p><strong>Average consultation time:</strong> <span id="avgDisplay">10</span> minutes</p>
+      <p><strong>Completed consultations:</strong> <span id="historyCount">0</span></p>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const errorBox = document.getElementById('errorBox');
+    const patientNameInput = document.getElementById('patientName');
+    const addBtn = document.getElementById('addBtn');
+    const callNextBtn = document.getElementById('callNextBtn');
+    const completeBtn = document.getElementById('completeBtn');
+    const queueList = document.getElementById('queueList');
+    const queueCount = document.getElementById('queueCount');
+    const currentDisplay = document.getElementById('currentDisplay');
+    const avgDisplay = document.getElementById('avgDisplay');
+    const historyCount = document.getElementById('historyCount');
+
+    socket.on('error', (msg) => {
+      errorBox.textContent = msg.message || 'Error';
+      errorBox.style.display = 'block';
+      setTimeout(() => { errorBox.style.display = 'none'; }, 4000);
+    });
+
+    socket.on('update', (state) => {
+      // Queue
+      queueList.innerHTML = '';
+      state.queue.forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = `Token #${p.token} – ${p.name}`;
+        queueList.appendChild(li);
+      });
+      queueCount.textContent = state.queue.length;
+
+      // Current
+      if (state.currentToken) {
+        currentDisplay.textContent = `#${state.currentToken.token} – ${state.currentToken.name}`;
+        completeBtn.disabled = false;
+      } else {
+        currentDisplay.textContent = 'None';
+        completeBtn.disabled = true;
+      }
+
+      // Buttons
+      callNextBtn.disabled = state.queue.length === 0;
+
+      // Stats
+      avgDisplay.textContent = state.avgTime.toFixed(1);
+      historyCount.textContent = state.history.length;
+    });
+
+    // Add
+    addBtn.addEventListener('click', () => {
+      const name = patientNameInput.value.trim();
+      if (!name) {
+        errorBox.textContent = 'Enter a name.';
+        errorBox.style.display = 'block';
+        setTimeout(() => { errorBox.style.display = 'none'; }, 3000);
+        return;
+      }
+      socket.emit('add-patient', { name });
+      patientNameInput.value = '';
+    });
+    patientNameInput.addEventListener('keypress', e => { if (e.key === 'Enter') addBtn.click(); });
+
+    // Call next
+    callNextBtn.addEventListener('click', () => {
+      socket.emit('call-next');
+    });
+
+    // Complete consultation
+    completeBtn.addEventListener('click', () => {
+      socket.emit('complete-consultation');
+    });
+  </script>
+</body>
+</html>
