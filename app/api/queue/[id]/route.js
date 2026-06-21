@@ -86,7 +86,7 @@ export async function PUT(request, { params }) {
 
     await patients.update(
       { _id: id },
-      { $set: { status } },
+      { status },
       {}
     );
 

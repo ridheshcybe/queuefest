@@ -43,7 +43,7 @@ export async function POST(request) {
     // Update patient to 'serving'
     await patients.update(
       { _id: nextPatient._id },
-      { $set: { status: 'serving' } },
+      { status: 'serving' },
       {}
     );
 

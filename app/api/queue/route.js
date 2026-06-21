@@ -24,7 +24,7 @@ export async function GET(request) {
     const patientsList = await patients.find({
       where: {
         userId: auth.user.id,
-        status: { in: ['waiting', 'serving'] },
+        status: { $in: ['waiting', 'serving'] },
       },
     });
 
