@@ -21,7 +21,7 @@ export async function GET(request) {
 
     const waiting = await patients.count({
       userId: auth.user.id,
-      status: 'waiting',
+        $in: ['waiting', 'serving'] ,
     });
 
     // Calculate average wait time from completed patients

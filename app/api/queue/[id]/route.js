@@ -14,8 +14,7 @@ export async function DELETE(request, { params }) {
   try {
     const patient = await patients.findOne({
     id: id,
-      userId: auth.user.id,
-      status: 'waiting', // only allow deleting waiting patients
+      userId: auth.user.id,  $in: ['waiting', 'serving']  // only allow deleting waiting patients
     });
 
     if (!patient) {

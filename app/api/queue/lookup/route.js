@@ -22,7 +22,7 @@ export async function GET(request) {
     // Get queue position and estimated wait (simplified)
     const allWaiting = await patients.find({
       userId: patient.userId,
-      status: 'waiting',
+  $in: ['waiting', 'serving'] 
     });
 
     const priorityWeight = {

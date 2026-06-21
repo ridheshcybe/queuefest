@@ -13,7 +13,7 @@ export async function POST(request) {
     // Find the next waiting patient (highest priority, then oldest)
     const waitingPatients = await patients.find({
       userId: auth.user.id,
-      status: 'waiting',
+  $in: ['waiting', 'serving'] ,
     });
 
     const priorityWeight = {
