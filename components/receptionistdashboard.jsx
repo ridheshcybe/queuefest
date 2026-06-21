@@ -115,7 +115,21 @@ export default function ReceptionistDashboard() {
     }
   };
 // Also, fix callNext to update state correctly (already fine)
-
+const skipServing = async () => {
+  if (!serving) return;
+  try {
+    // Move serving patient back to waiting
+    const data = await apiFetch(`/api/queue/${serving.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status: 'waiting' }),
+    });
+    setServing(null);
+    setQueue((prev) => [...prev, data]); // re-add to waiting queue
+    toast('Skipped current patient', 'warning');
+  } catch (err) {
+    toast(err.message || 'Failed to skip', 'error');
+  }
+};
 
   if (loading) {
     return (
