@@ -28,7 +28,7 @@ export async function DELETE(request, { params }) {
 
     await queueLogs.insert({
       action: 'deleted',
-      patientId: patient._id,
+      patientId: patient.id,
       userId: auth.user.id,
       details: `Token ${patient.token} deleted`,
     });
@@ -92,7 +92,7 @@ export async function PUT(request, { params }) {
     // Log the status change
     await queueLogs.insert({
       action: `status_changed_to_${status}`,
-      patientId: patient._id,
+      patientId: patient.id,
       userId: auth.user.id,
       details: `Changed status from ${patient.status} to ${status} for token ${patient.token}`,
     });

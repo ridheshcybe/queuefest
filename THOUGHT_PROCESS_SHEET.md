@@ -68,7 +68,7 @@ The application uses NeDB:
 
 - It has three collections: patients, queueLogs and users
 
-- It maps `_id` to `id` for API consistency
+- It maps `id` to `id` for API consistency
 
 - It does not require connection pooling since it is an embedded database
 

@@ -40,7 +40,7 @@ export async function GET(request) {
       return new Date(a.createdAt) - new Date(b.createdAt); // Oldest first
     });
 
-    const pos = allWaiting.findIndex(p => p._id === patient._id) + 1;
+    const pos = allWaiting.findIndex(p => p.id === patient.id) + 1;
     const avgWait = 12; // could be dynamic
     const wait = pos * avgWait;
 

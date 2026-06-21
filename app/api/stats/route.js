@@ -38,7 +38,9 @@ export async function GET(request) {
         const created = patient.createdAt;
         const completed = patient.completedAt;
         if (created && completed) {
-          const waitMs = completed - created;
+        const waitMs =
+  new Date(completed).getTime() -
+  new Date(created).getTime();
           const waitMinutes = waitMs / 1000 / 60;
           return sum + waitMinutes;
         }

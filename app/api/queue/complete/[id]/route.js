@@ -39,14 +39,15 @@ export async function POST(request, { params }) {
     // Log the completion action for audit trail
     await queueLogs.insert({
       action: 'completed',
-      patientId: patient._id,
+      patientId: patient.id,
       userId: auth.user.id,
       details: `Completed ${patient.token}`,
     });
 
     logger.info(`Patient completed: ${patient.token}`);
 
-    return NextResponse.json(patient);
+const updatedPatient = await patients.findOne({ id });
+return NextResponse.json(updatedPatient);
   } catch (error) {
     logger.error('Complete patient error:', error);
     return NextResponse.json(

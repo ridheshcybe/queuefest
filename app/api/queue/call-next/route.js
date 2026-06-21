@@ -42,7 +42,7 @@ export async function POST(request) {
 
     // Update patient to 'serving'
     await patients.update(
-      { id: nextPatient._id },
+      { id: nextPatient.id },
       { status: 'serving' },
       {}
     );
@@ -50,7 +50,7 @@ export async function POST(request) {
     // Log
     await queueLogs.insert({
       action: 'called',
-      patientId: nextPatient._id,
+      patientId: nextPatient.id,
       userId: auth.user.id,
       details: `Called ${nextPatient.token}`,
     });
@@ -58,7 +58,8 @@ export async function POST(request) {
     logger.info(`Called next patient: ${nextPatient.token}`);
 
     // Also ensure any other serving patient is set back to waiting? Not needed if we complete properly.
-    return NextResponse.json(nextPatient);
+const updated = await patients.findOne({ id: nextPatient.id });
+return NextResponse.json(updated);
   } catch (error) {
     logger.error('Call next error:', error);
     return NextResponse.json(
